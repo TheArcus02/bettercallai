@@ -7,23 +7,10 @@ import { CheckCircle } from 'lucide-react';
 import { AnalysisSummary } from './analysis-summary';
 import { CriticalWarnings } from './critical-warnings';
 import { PointsOfInterest } from './points-of-interest';
-
-interface AnalysisData {
-  summary: string;
-  criticalWarnings: Array<{
-    title: string;
-    description: string;
-    severity: string;
-  }>;
-  pointsOfInterest: Array<{
-    title: string;
-    description: string;
-    type: string;
-  }>;
-}
+import type { AnalysisResult } from '@/actions/analyze-tos-action';
 
 interface AnalysisResultsProps {
-  results: AnalysisData;
+  results: AnalysisResult | null;
   onStartNewAnalysis: () => void;
 }
 
@@ -35,6 +22,10 @@ export function AnalysisResults({
     // TODO: Implement export functionality
     console.log('Exporting analysis...', results);
   };
+
+  if (!results) {
+    return null;
+  }
 
   return (
     <div className='space-y-6'>
