@@ -9,16 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import {
-  AlertTriangle,
-  FileText,
-  Loader2,
-  CheckCircle,
-  Link,
-  Globe,
-} from 'lucide-react';
+import { FileText, Link, Globe } from 'lucide-react';
+import { UrlInputForm } from './url-input-form';
+import { TextInputForm } from './text-input-form';
 
 interface AnalysisInputProps {
   isAnalyzing: boolean;
@@ -33,33 +26,13 @@ export function AnalysisInput({
   onStartAnalysis,
 }: AnalysisInputProps) {
   const [inputMode, setInputMode] = useState<'url' | 'text'>('url');
-  const [tosUrl, setTosUrl] = useState('');
-  const [tosText, setTosText] = useState('');
 
-  const isValidUrl = (string: string) => {
-    try {
-      new URL(string);
-      return true;
-    } catch (_) {
-      return false;
-    }
+  const handleUrlSubmit = (url: string) => {
+    onStartAnalysis({ inputMode: 'url', content: url });
   };
 
-  const hasValidInput =
-    inputMode === 'url' ? tosUrl.trim() && isValidUrl(tosUrl) : tosText.trim();
-
-  const handleAnalyze = () => {
-    if (!hasValidInput) return;
-
-    const content = inputMode === 'url' ? tosUrl : tosText;
-    onStartAnalysis({ inputMode, content });
-  };
-
-  const handleInputModeChange = (mode: 'url' | 'text') => {
-    setInputMode(mode);
-    // Clear inputs when switching modes to avoid confusion
-    setTosUrl('');
-    setTosText('');
+  const handleTextSubmit = (text: string) => {
+    onStartAnalysis({ inputMode: 'text', content: text });
   };
 
   return (
@@ -87,9 +60,10 @@ export function AnalysisInput({
           <Button
             variant={inputMode === 'url' ? 'default' : 'outline'}
             size='sm'
-            onClick={() => handleInputModeChange('url')}
+            onClick={() => setInputMode('url')}
             className='flex items-center gap-2'
             disabled={isAnalyzing}
+            type='button'
           >
             <Globe className='h-4 w-4' />
             URL
@@ -97,90 +71,24 @@ export function AnalysisInput({
           <Button
             variant={inputMode === 'text' ? 'default' : 'outline'}
             size='sm'
-            onClick={() => handleInputModeChange('text')}
+            onClick={() => setInputMode('text')}
             className='flex items-center gap-2'
             disabled={isAnalyzing}
+            type='button'
           >
             <FileText className='h-4 w-4' />
             Text
           </Button>
         </div>
 
+        {/* Render appropriate form based on input mode */}
         {inputMode === 'url' ? (
-          <div className='space-y-4'>
-            <div className='relative'>
-              <Input
-                type='url'
-                placeholder='https://example.com/terms-of-service'
-                value={tosUrl}
-                onChange={(e) => setTosUrl(e.target.value)}
-                disabled={isAnalyzing}
-              />
-              {tosUrl && (
-                <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
-                  {isValidUrl(tosUrl) ? (
-                    <CheckCircle className='h-4 w-4 text-green-500' />
-                  ) : (
-                    <AlertTriangle className='h-4 w-4 text-destructive' />
-                  )}
-                </div>
-              )}
-            </div>
-            <div className='flex items-center justify-between'>
-              <p className='text-sm text-muted-foreground'>
-                {tosUrl.length > 0
-                  ? isValidUrl(tosUrl)
-                    ? 'Valid URL ready for analysis'
-                    : 'Please enter a valid URL'
-                  : 'Enter a URL to begin analysis'}
-              </p>
-              <Button
-                onClick={handleAnalyze}
-                disabled={!hasValidInput || isAnalyzing}
-                size='lg'
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                    Fetching & Analyzing...
-                  </>
-                ) : (
-                  'Analyze Terms'
-                )}
-              </Button>
-            </div>
-          </div>
+          <UrlInputForm isAnalyzing={isAnalyzing} onSubmit={handleUrlSubmit} />
         ) : (
-          <div className='space-y-4'>
-            <Textarea
-              placeholder='Paste the Terms of Service document here...'
-              value={tosText}
-              onChange={(e) => setTosText(e.target.value)}
-              className='min-h-[200px] resize-none'
-              disabled={isAnalyzing}
-            />
-            <div className='flex items-center justify-between'>
-              <p className='text-sm text-muted-foreground'>
-                {tosText.length > 0
-                  ? `${tosText.length} characters`
-                  : 'Enter text to begin analysis'}
-              </p>
-              <Button
-                onClick={handleAnalyze}
-                disabled={!hasValidInput || isAnalyzing}
-                size='lg'
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                    Analyzing...
-                  </>
-                ) : (
-                  'Analyze Terms'
-                )}
-              </Button>
-            </div>
-          </div>
+          <TextInputForm
+            isAnalyzing={isAnalyzing}
+            onSubmit={handleTextSubmit}
+          />
         )}
       </CardContent>
     </Card>
