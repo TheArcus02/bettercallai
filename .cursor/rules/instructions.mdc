@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+- Ensure well structured folders, put components in components folder.
+- Reference the readme.md file for project overview.
+- Always use @ alias for imports when possible.
+- Always use kebab-case when creating a files.
+- Always use tailwindcss for styling.
+- Don't use template string for classNames use cn() util from "@lib/utils" instead.
+- Never use `any` typescript keyword.
+- Use collocation in folder structure
+- Put global components in /app/\_components folder
+- refer to the readme.md file for project overview.
+
+- Do not create logic you were not asked for.
+- Do not add unnecessary comments for obvious things and logic.
