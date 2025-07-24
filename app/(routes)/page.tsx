@@ -60,7 +60,7 @@ export default function Home() {
     'url'
   );
 
-  const handleStartAnalysis = async (data: {
+  const handleStartAnalysis = (data: {
     inputMode: 'url' | 'text';
     content: string;
   }) => {
