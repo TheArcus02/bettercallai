@@ -12,6 +12,7 @@ alwaysApply: true
 - Use collocation in folder structure
 - Put global components in /app/\_components folder
 - refer to the readme.md file for project overview.
+- Always use single responsibility principle for components. The page should only display subcomponents. Each subcomponent should have its own file.
 
 - Do not create logic you were not asked for.
 - Do not add unnecessary comments for obvious things and logic.
