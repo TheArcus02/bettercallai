@@ -63,7 +63,6 @@ export const useTosAnalyzerStore = create<TosAnalyzerState>((set, get) => ({
       // If input mode is URL, extract ToS from the URL first
       if (data.inputMode === 'url') {
         tosText = await extractTosFromUrl(data.content);
-        return;
       }
 
       // Analyze the ToS text

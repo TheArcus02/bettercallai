@@ -1,6 +1,7 @@
 'use server';
 
 import { generateObject } from 'ai';
+import * as cheerio from 'cheerio';
 import { AGENTS } from '@/lib/constants/agents';
 
 export async function extractTosFromUrl(url: string): Promise<string> {
@@ -33,8 +34,15 @@ export async function extractTosFromUrl(url: string): Promise<string> {
       throw new Error('No content found at the provided URL');
     }
 
-    // Use the LLM agent to extract ToS content
-    const agent = AGENTS.TOS_EXTRACTOR(htmlContent);
+    // Extract and clean content using Cheerio
+    const cleanedContent = extractCleanContent(htmlContent);
+
+    if (!cleanedContent || cleanedContent.trim().length < 100) {
+      throw new Error('Insufficient content found on the page for analysis');
+    }
+
+    // Use the LLM agent to extract ToS content from the cleaned text
+    const agent = AGENTS.TOS_EXTRACTOR(cleanedContent);
 
     const result = await generateObject(agent);
 
@@ -62,4 +70,91 @@ export async function extractTosFromUrl(url: string): Promise<string> {
     console.error('Error extracting Terms of Service from URL:', error);
     throw new Error('Failed to extract Terms of Service from URL');
   }
+}
+
+function extractCleanContent(html: string): string {
+  const $ = cheerio.load(html);
+
+  // Remove unnecessary elements that don't contain ToS content
+  $(
+    'script, style, nav, header, footer, .nav, .navigation, .header, .footer'
+  ).remove();
+  $('iframe, embed, object, video, audio').remove();
+  $('.advertisement, .ads, .social, .share, .comment').remove();
+  $('[role="navigation"], [role="banner"], [role="contentinfo"]').remove();
+
+  // Look for potential ToS content by common selectors and keywords
+  const tosSelectors = [
+    // Common ToS container selectors
+    '.terms, .tos, .terms-of-service, .terms-of-use, .user-agreement',
+    '.legal, .legal-terms, .agreement, .conditions',
+    '[id*="terms"], [id*="tos"], [class*="terms"], [class*="tos"]',
+
+    // Main content areas that might contain ToS
+    'main, .main, .content, .main-content, .page-content',
+    '.container, .wrapper, .inner',
+
+    // Article and section tags
+    'article, section',
+  ];
+
+  let tosContent = '';
+
+  // Try to find ToS content using selectors
+  for (const selector of tosSelectors) {
+    const elements = $(selector);
+    if (elements.length > 0) {
+      elements.each((_, element) => {
+        const text = $(element).text().trim();
+        // Check if this element likely contains ToS content
+        if (text.length > 500 && containsToSKeywords(text)) {
+          tosContent += text + '\n\n';
+        }
+      });
+    }
+  }
+
+  // If no specific ToS content found, fall back to body content
+  if (!tosContent.trim()) {
+    // Remove common non-content elements from body
+    $('aside, .sidebar, .nav, .menu, .breadcrumb').remove();
+    $('.related, .recommended, .suggestions').remove();
+
+    tosContent = $('body').text().trim();
+  }
+
+  // Clean up the text
+  return tosContent
+    .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+    .replace(/\n\s*\n/g, '\n\n') // Clean up line breaks
+    .trim();
+}
+
+function containsToSKeywords(text: string): boolean {
+  const tosKeywords = [
+    'terms of service',
+    'terms of use',
+    'user agreement',
+    'terms and conditions',
+    'agreement',
+    'liability',
+    'disclaimer',
+    'prohibited',
+    'violation',
+    'termination',
+    'suspension',
+    'intellectual property',
+    'copyright',
+    'privacy policy',
+    'data collection',
+    'user content',
+    'service provider',
+    'governing law',
+    'dispute resolution',
+    'arbitration',
+    'indemnification',
+  ];
+
+  const lowerText = text.toLowerCase();
+  return tosKeywords.some((keyword) => lowerText.includes(keyword));
 }
