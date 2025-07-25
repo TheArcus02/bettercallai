@@ -9,30 +9,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FileText, Link, Globe } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileText, Link, Globe, AlertCircle } from 'lucide-react';
 import { UrlInputForm } from './url-input-form';
 import { TextInputForm } from './text-input-form';
+import { useTosAnalyzerStore } from '@/lib/stores/tos-analyzer-store';
 
-interface AnalysisInputProps {
-  isAnalyzing: boolean;
-  onStartAnalysis: (data: {
-    inputMode: 'url' | 'text';
-    content: string;
-  }) => void;
-}
-
-export function AnalysisInput({
-  isAnalyzing,
-  onStartAnalysis,
-}: AnalysisInputProps) {
+export function AnalysisInput() {
   const [inputMode, setInputMode] = useState<'url' | 'text'>('url');
 
-  const handleUrlSubmit = (url: string) => {
-    onStartAnalysis({ inputMode: 'url', content: url });
+  const isAnalyzing = useTosAnalyzerStore((state) => state.isLoading);
+  const error = useTosAnalyzerStore((state) => state.error);
+  const startAnalysis = useTosAnalyzerStore((state) => state.startAnalysis);
+
+  const handleUrlSubmit = async (url: string) => {
+    await startAnalysis({ inputMode: 'url', content: url });
   };
 
-  const handleTextSubmit = (text: string) => {
-    onStartAnalysis({ inputMode: 'text', content: text });
+  const handleTextSubmit = async (text: string) => {
+    await startAnalysis({ inputMode: 'text', content: text });
   };
 
   return (
@@ -55,6 +50,14 @@ export function AnalysisInput({
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
+        {/* Error Display */}
+        {error && (
+          <Alert variant='destructive'>
+            <AlertCircle className='h-4 w-4' />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         {/* Input Mode Toggle */}
         <div className='flex items-center gap-2 mb-4'>
           <Button

@@ -7,17 +7,14 @@ import { CheckCircle } from 'lucide-react';
 import { AnalysisSummary } from './analysis-summary';
 import { CriticalWarnings } from './critical-warnings';
 import { PointsOfInterest } from './points-of-interest';
-import type { AnalysisResult } from '@/actions/analyze-tos-action';
+import { useTosAnalyzerStore } from '@/lib/stores/tos-analyzer-store';
 
-interface AnalysisResultsProps {
-  results: AnalysisResult | null;
-  onStartNewAnalysis: () => void;
-}
+export function AnalysisResults() {
+  const results = useTosAnalyzerStore((state) => state.analysisResults);
+  const startNewAnalysis = useTosAnalyzerStore(
+    (state) => state.startNewAnalysis
+  );
 
-export function AnalysisResults({
-  results,
-  onStartNewAnalysis,
-}: AnalysisResultsProps) {
   const handleExport = () => {
     // TODO: Implement export functionality
     console.log('Exporting analysis...', results);
@@ -50,7 +47,7 @@ export function AnalysisResults({
 
       {/* Action Buttons */}
       <div className='flex gap-4 justify-center'>
-        <Button variant='outline' onClick={onStartNewAnalysis}>
+        <Button variant='outline' onClick={startNewAnalysis}>
           Analyze Another Document
         </Button>
         <Button onClick={handleExport}>Export Analysis</Button>

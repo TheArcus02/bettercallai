@@ -1,11 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { useTosAnalyzerStore } from '@/lib/stores/tos-analyzer-store';
 import { Loader2 } from 'lucide-react';
 
-interface LoadingStateProps {
-  inputMode: 'url' | 'text';
-}
-
-export function LoadingState({ inputMode }: LoadingStateProps) {
+export function LoadingState() {
+  const inputMode = useTosAnalyzerStore((state) => state.currentInputMode);
   return (
     <Card className='mb-8'>
       <CardContent className='flex items-center justify-center py-12'>
