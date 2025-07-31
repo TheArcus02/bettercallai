@@ -54,24 +54,38 @@ const analysisSchema = z.object({
 });
 export type AnalysisResult = z.infer<typeof analysisSchema>;
 
-const tosExtractionSchema = z.object({
-  containsToS: z
+const legalDocumentExtractionSchema = z.object({
+  documentFound: z
     .boolean()
-    .describe(
-      'Whether the page content contains Terms of Service or Terms of Use'
-    ),
-  tosText: z
+    .describe('Whether any recognizable legal document was found on the page.'),
+  documentType: z
+    .enum([
+      'Terms of Service',
+      'Privacy Policy',
+      'Cookie Policy',
+      'EULA',
+      'Disclaimer',
+      'Acceptable Use Policy',
+      'Other',
+      'None',
+    ])
+    .describe('The type of legal document identified.'),
+  extractedText: z
     .string()
     .optional()
-    .describe('The extracted Terms of Service text if found'),
+    .describe('The full, extracted text of the legal document if found.'),
   reason: z
     .string()
-    .describe('Explanation of why ToS was or was not found on the page'),
+    .describe(
+      'A brief explanation of the classification, or why no document was found.'
+    ),
 });
-export type TosExtractionResult = z.infer<typeof tosExtractionSchema>;
+export type LegalDocumentExtractionResult = z.infer<
+  typeof legalDocumentExtractionSchema
+>;
 
 export const AGENTS = {
-  TOS_ANALYZER: (tosText: string) => ({
+  LEGAL_DOCUMENT_ANALYZER: (tosText: string) => ({
     model: openai('gpt-4o'),
     schema: analysisSchema,
     system: `You are an expert legal analyst specializing in Terms of Service agreements. Your role is to:
@@ -100,33 +114,36 @@ export const AGENTS = {
   Provide practical insights that help users understand what they're agreeing to.`,
   }),
 
-  TOS_EXTRACTOR: (pageContent: string) => ({
-    model: openai('gpt-4o'),
-    schema: tosExtractionSchema,
-    system: `You are an expert at identifying and extracting Terms of Service (ToS) or Terms of Use content from web pages. Your role is to:
+  LEGAL_DOCUMENT_EXTRACTOR: (pageContent: string) => ({
+    model: openai('gpt-4o-mini'),
+    schema: legalDocumentExtractionSchema,
+    system: `You are an expert AI assistant specializing in identifying and extracting legal documents from web page content. Your goal is to accurately classify and extract the full text of these documents.
 
-1. Analyze the provided web page content to determine if it contains Terms of Service, Terms of Use, or similar legal agreements
-2. Extract the complete ToS text if found, ensuring no important sections are missed
-3. Clearly identify when a page does NOT contain ToS content
-4. Distinguish between ToS and other legal documents (privacy policies, cookie policies, etc.)
+Your role is to:
+1.  Analyze the provided web page content to determine if it contains a common legal document.
+2.  Identify the specific type of document (e.g., Terms of Service, Privacy Policy, etc.).
+3.  Extract the complete text of that document, ensuring no important sections are missed.
+4.  If no recognizable legal document is found, clearly state that.
 
-Look for common indicators:
-- Headings like "Terms of Service", "Terms of Use", "Terms and Conditions", "User Agreement"
-- Legal language about user responsibilities, service usage, liability, termination
-- Structured legal sections with numbered or lettered clauses
-- Content that governs the relationship between users and the service provider`,
-    prompt: `Analyze the following web page content and determine if it contains Terms of Service or Terms of Use:
+Look for common document types and their indicators:
+-   **Terms of Service / Terms of Use / EULA**: Governs the use of a service. Look for headings like "Terms of Service", "User Agreement", "EULA".
+-   **Privacy Policy**: Explains how user data is collected, used, and stored. Look for headings like "Privacy Policy", "Data Policy".
+-   **Cookie Policy**: Details the use of cookies on the site. Look for headings like "Cookie Policy", "Cookie Statement".
+-   **Acceptable Use Policy (AUP)**: Defines prohibited uses of a service.
+-   **Disclaimer**: Limits liability.
 
+Your primary task is to find the main legal document on the page, classify it, and extract its content.`,
+    prompt: `Analyze the following web page content. Identify the type of legal document it contains and extract its full text
 ${pageContent}
 
-If you find ToS content:
+If you find a legal document content:
 - Extract the complete text including all sections and clauses
 - Ensure you capture the full legal agreement, not just snippets
 - Include section headers and numbered/lettered items
 
-If no ToS is found:
-- Clearly state that no Terms of Service were found
+If no legal document is found:
+- Clearly state that no legal document was found
 - Explain what type of content the page contains instead
-- Be specific about why it doesn't qualify as ToS`,
+- Be specific about why it doesn't qualify as a legal document`,
   }),
 } as const;

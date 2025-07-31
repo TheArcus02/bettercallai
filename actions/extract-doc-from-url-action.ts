@@ -4,7 +4,7 @@ import { generateObject } from 'ai';
 import * as cheerio from 'cheerio';
 import { AGENTS } from '@/lib/constants/agents';
 
-export async function extractTosFromUrl(url: string): Promise<string> {
+export async function extractLegalDocFromUrl(url: string): Promise<string> {
   try {
     // Validate URL format
     const parsedUrl = new URL(url);
@@ -42,14 +42,14 @@ export async function extractTosFromUrl(url: string): Promise<string> {
     }
 
     // Use the LLM agent to extract ToS content from the cleaned text
-    const agent = AGENTS.TOS_EXTRACTOR(cleanedContent);
+    const agent = AGENTS.LEGAL_DOCUMENT_EXTRACTOR(cleanedContent);
 
     const result = await generateObject(agent);
 
     const extractionResult = result.object;
 
     // Check if ToS was found
-    if (!extractionResult.containsToS) {
+    if (!extractionResult.documentFound) {
       throw new Error(
         `No Terms of Service found on this page. ${extractionResult.reason}`
       );
@@ -57,15 +57,15 @@ export async function extractTosFromUrl(url: string): Promise<string> {
 
     // Validate that we have ToS text
     if (
-      !extractionResult.tosText ||
-      extractionResult.tosText.trim().length === 0
+      !extractionResult.extractedText ||
+      extractionResult.extractedText.trim().length === 0
     ) {
       throw new Error(
         'Terms of Service content appears to be empty or invalid'
       );
     }
 
-    return extractionResult.tosText;
+    return extractionResult.extractedText;
   } catch (error) {
     console.error('Error extracting Terms of Service from URL:', error);
     throw new Error('Failed to extract Terms of Service from URL');

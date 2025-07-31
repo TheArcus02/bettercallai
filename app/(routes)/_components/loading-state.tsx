@@ -3,23 +3,35 @@ import { useTosAnalyzerStore } from '@/lib/stores/tos-analyzer-store';
 import { Loader2 } from 'lucide-react';
 
 export function LoadingState() {
+  const progress = useTosAnalyzerStore((state) => state.progress);
   const inputMode = useTosAnalyzerStore((state) => state.currentInputMode);
+
   return (
     <Card className='mb-8'>
-      <CardContent className='flex items-center justify-center py-12'>
-        <div className='text-center space-y-4'>
-          <Loader2 className='h-8 w-8 animate-spin mx-auto text-primary' />
-          <div>
+      <CardContent className='py-12'>
+        <div className='max-w-md mx-auto space-y-6'>
+          {/* Header */}
+          <div className='text-center'>
+            <Loader2 className='h-8 w-8 animate-spin mx-auto text-primary mb-4' />
             <h3 className='text-lg font-semibold'>
               {inputMode === 'url'
-                ? 'Fetching & Analyzing Terms of Service'
+                ? 'Processing Terms of Service URL'
                 : 'Analyzing Terms of Service'}
             </h3>
-            <p className='text-muted-foreground'>
-              {inputMode === 'url'
-                ? 'Fetching the document from the URL and analyzing for potential concerns...'
-                : 'AI is reviewing the document for potential concerns...'}
-            </p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className='space-y-2'>
+            <div className='flex justify-between text-sm text-muted-foreground'>
+              <span>Progress</span>
+              <span>{progress.progress}%</span>
+            </div>
+            <div className='w-full bg-secondary rounded-full h-2'>
+              <div
+                className='bg-primary h-2 rounded-full transition-all duration-300 ease-in-out'
+                style={{ width: `${progress.progress}%` }}
+              />
+            </div>
           </div>
         </div>
       </CardContent>

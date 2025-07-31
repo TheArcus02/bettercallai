@@ -4,11 +4,11 @@ import { generateObject } from 'ai';
 import type { AnalysisResult } from '@/lib/constants/agents';
 import { AGENTS } from '@/lib/constants/agents';
 
-export async function analyzeTermsOfService(
+export async function analyzeLegalDocument(
   tosText: string
 ): Promise<AnalysisResult> {
   try {
-    const agent = AGENTS.TOS_ANALYZER(tosText);
+    const agent = AGENTS.LEGAL_DOCUMENT_ANALYZER(tosText);
     const { object } = await generateObject(agent);
 
     console.log(JSON.stringify(object, null, 2));
