@@ -47,6 +47,7 @@ const useFormField = () => {
   const formState = useFormState({ name: fieldContext.name });
   const fieldState = getFieldState(fieldContext.name, formState);
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!fieldContext) {
     throw new Error('useFormField should be used within <FormField>');
   }
@@ -136,6 +137,7 @@ function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
   const { error, formMessageId } = useFormField();
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const body = error ? String(error?.message ?? '') : props.children;
 
   if (!body) {
